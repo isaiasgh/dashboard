@@ -12,6 +12,8 @@ import LineChartWeather from './components/LineChartWeather';
 
 import { useEffect, useState } from 'react';
 
+import Item from '../src/interface/Item.tsx'
+
 interface Indicator {
   title?: String;
   subtitle?: String;
@@ -19,6 +21,17 @@ interface Indicator {
 }
 
 function App() {
+  const [items, setItems] = useState<Item[]>([]);
+
+  const addItem = (newItem: Item) => {
+    setItems((prevItems) => [...prevItems, newItem]);
+  };
+
+  // Función para eliminar un elemento por su id
+  const removeItem = (id: number) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
+  
   // const [count, setCount] = useState(0)
 
   {/* Variable de estado y función de actualización */ }
@@ -28,61 +41,78 @@ function App() {
   {/* Hook: useEffect */ }
 
   useEffect(() => {
-
-    let request = async () => {
-
-      // {/* Request */}
-      // let API_KEY = "56ceb39df96255310e632dac07c3e9bf"
-      // let response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=Guayaquil&mode=xml&appid=${API_KEY}`)
-
-
-      {/* Referencia a las claves del LocalStorage: openWeatherMap y expiringTime */ }
+    const request = async () => {
       let savedTextXML = localStorage.getItem("openWeatherMap") || "";
       let expiringTime = localStorage.getItem("expiringTime");
-      // let savedTextXML = await response.text();
-
-      {/* Obtenga la estampa de tiempo actual */ }
-      let nowTime = (new Date()).getTime();
-
-      {/* Verifique si es que no existe la clave expiringTime o si la estampa de tiempo actual supera el tiempo de expiración */ }
+      let nowTime = new Date().getTime();
+  
       if (expiringTime === null || nowTime > parseInt(expiringTime)) {
-
-        {/* Request */ }
-        let API_KEY = "56ceb39df96255310e632dac07c3e9bf"
-        let response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=Guayaquil&mode=xml&appid=${API_KEY}`)
-
-        {/* Tiempo de expiración */ }
-        let hours = 0.01
-        let delay = hours * 3600000
-        let expiringTime = nowTime + delay
-        let savedTextXMLRes = await response.text();
-
-        {/* En el LocalStorage, almacene el texto en la clave openWeatherMap, estampa actual y estampa de tiempo de expiración */ }
-        localStorage.setItem("openWeatherMap", savedTextXMLRes)
-        localStorage.setItem("expiringTime", expiringTime.toString())
-        localStorage.setItem("nowTime", nowTime.toString())
-
-        {/* DateTime */ }
-        localStorage.setItem("expiringDateTime", new Date(expiringTime).toString())
-        localStorage.setItem("nowDateTime", new Date(nowTime).toString())
-
-        {/* Modificación de la variable de estado mediante la función de actualización */ }
-        setOWM(savedTextXML)
+        const API_KEY = "56ceb39df96255310e632dac07c3e9bf";
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=Guayaquil&mode=xml&appid=${API_KEY}`);
+        savedTextXML = await response.text();
+  
+        let hours = 0.01;
+        let delay = hours * 3600000;
+        let newExpiringTime = nowTime + delay;
+  
+        localStorage.setItem("openWeatherMap", savedTextXML);
+        localStorage.setItem("expiringTime", newExpiringTime.toString());
       }
-
+  
       if (savedTextXML) {
-        {/* XML Parser */ }
         const parser = new DOMParser();
         const xml = parser.parseFromString(savedTextXML, "application/xml");
-        {/* Arreglo para agregar los resultados */ }
+      
+        // Crear el arreglo temporal
+        let dataToItems: Item[] = [];
+      
+        // Obtener todas las etiquetas <time>
+        const times = xml.getElementsByTagName("time");
+
+
+        const extractTime = (datetime: string) => {
+          const date = new Date(datetime); // Crear un objeto Date con la cadena
+          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Formatear solo la hora
+        };
+        
+        for (let i = 0; i < times.length; i++) {
+          if (dataToItems.length >= 6) break; // Limitar a los primeros 6 objetos
+        
+          const time = times[i];
+        
+          // Extraer atributos @from y @to de <time>
+          const dateStart = extractTime(time.getAttribute("from") || "");
+          const dateEnd = extractTime(time.getAttribute("to") || "");
+        
+          // Extraer <time> > precipitation y el atributo probability
+          const precipitationElement = time.getElementsByTagName("precipitation")[0];
+          const precipitation = precipitationElement?.getAttribute("probability") || "";
+        
+          // Extraer <time> > humidity y el atributo value
+          const humidityElement = time.getElementsByTagName("humidity")[0];
+          const humidity = humidityElement?.getAttribute("value") || "";
+        
+          // Extraer <time> > clouds y el atributo all
+          const cloudsElement = time.getElementsByTagName("clouds")[0];
+          const clouds = cloudsElement?.getAttribute("all") || "";
+        
+          // Agregar el objeto al arreglo temporal
+          dataToItems.push({
+            dateStart,
+            dateEnd,
+            precipitation,
+            humidity,
+            clouds,
+          });
+        }
+      
+        // Usar slice para asegurarse de tomar solo los primeros 6 (redundante pero útil para seguridad adicional)
+        const limitedDataToItems = dataToItems.slice(0, 6);
+      
+        // Actualizar el estado con los primeros 6 elementos
+        setItems(limitedDataToItems);
 
         let dataToIndicators: Indicator[] = new Array<Indicator>();
-
-        {/* 
-            Análisis, extracción y almacenamiento del contenido del XML 
-            en el arreglo de resultados
-        */}
-
         let name = xml.getElementsByTagName("name")[0].innerHTML || ""
         dataToIndicators.push({ "title": "Location", "subtitle": "City", "value": name })
 
@@ -97,18 +127,12 @@ function App() {
         let altitude = location.getAttribute("altitude") || ""
         dataToIndicators.push({ "title": "Location", "subtitle": "Altitude", "value": altitude })
 
-        // console.log( dataToIndicators )
-
-        {/* Modificación de la variable de estado mediante la función de actualización */ }
         setIndicators(dataToIndicators)
-
       }
-
-    }
-
+    };
+  
     request();
-
-  }, [owm])
+  }, [owm]);  
 
   return (
     <Grid container spacing={5}>
@@ -152,7 +176,7 @@ function App() {
             <ControlWeather />
           </Grid>
           <Grid size={{ xs: 12, xl: 9 }}>
-            <TableWeather />
+            <TableWeather itemsIn={items} />
           </Grid>
         </Grid>
       </Grid>
