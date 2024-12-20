@@ -10,7 +10,7 @@ interface ResumeComponentProps {
   icon: string;
 }
 
-const WeatherSummary: React.FC<ResumeComponentProps> = ({ city, country, condition, icon }) => {
+const WeatherSummary: React.FC<ResumeComponentProps> = ({ icon }) => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {

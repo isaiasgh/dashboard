@@ -8,7 +8,7 @@ interface LineChartWeatherProps {
     historicalType: string;
 }
 
-const LineChartWeather: React.FC<LineChartWeatherProps> = ({ city, historicalType }) => {
+const LineChartWeather: React.FC<LineChartWeatherProps> = ({ city }) => {
     const [chartData, setChartData] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [selectedType, setSelectedType] = useState<string>('temperature');

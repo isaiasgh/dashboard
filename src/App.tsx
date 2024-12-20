@@ -25,24 +25,21 @@ const theme = createTheme({
     },
 });
 
+type Item = {
+    id?: number;
+    dateStart: string;
+    dateEnd: string;
+    precipitation: string;
+    humidity: string;
+    clouds: string;
+};
+
 const App: React.FC = () => {
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [cityInput, setCityInput] = useState<string>('');
     const [selectedCity, setSelectedCity] = useState<string>('Guayaquil');
     const [forecastData, setForecastData] = useState<any>(null);
-    const [historicalType, setHistoricalType] = useState<string>('temperature');
+    const [historicalType] = useState<string>('temperature');
     const [items, setItems] = useState<Item[]>([]);
-
-    const addItem = (newItem: Item) => {
-        setItems((prevItems) => [...prevItems, newItem]);
-    };
-
-    const removeItem = (id: number) => {
-        setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    };
-
-    let [indicators, setIndicators] = useState<Indicator[]>([]);
-    let [owm, setOWM] = useState(localStorage.getItem("openWeatherMap"));
 
     useEffect(() => {
         const request = async () => {
