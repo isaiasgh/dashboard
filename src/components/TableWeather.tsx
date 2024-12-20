@@ -6,49 +6,70 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
-import Item from '../interface/Item.tsx'; // Asegúrate de que el path sea correcto
+import Item from '../interface/Item.tsx';
 import { useEffect, useState } from 'react';
 
-interface MyProp {
-  itemsIn: Item[];
+interface WeatherProps {
+  weatherData: Item[];
 }
 
+export default function TableWeather(props: WeatherProps) {
 
-export default function TableWeather(props: MyProp) {
-  // Crear la variable de estado rows y su función de actualización setRows
-  const [rows, setRows] = useState<Item[]>(props.itemsIn);
+  const [climateData, updateClimateData] = useState<Item[]>(props.weatherData);
 
-  // Usar useEffect para actualizar rows cada vez que props.itemsIn cambie
+
   useEffect(() => {
-    setRows(props.itemsIn);
-  }, [props.itemsIn]);  // Dependencia del prop itemsIn
+    updateClimateData(props.weatherData);
+  }, [props.weatherData]); 
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="weather table">
+    <TableContainer
+      component={Paper}
+      sx={{
+        backgroundColor: '#001f3f',
+        color: '#FFFF',
+        borderRadius: 4,
+        boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      <Table aria-label="climate data table">
         <TableHead>
-          <TableRow>
-            <TableCell>Hora de inicio</TableCell>
-            <TableCell>Hora de fin</TableCell>
-            <TableCell align="right">Precipitación</TableCell>
-            <TableCell align="right">Humedad</TableCell>
-            <TableCell align="right">Nubosidad</TableCell>
+          <TableRow sx={{ backgroundColor: '#0074D9' }}>
+            <TableCell sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>Inicio</TableCell>
+            <TableCell sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>Fin</TableCell>
+            <TableCell align="right" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>
+              Precipitación
+            </TableCell>
+            <TableCell align="right" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>
+              Humedad
+            </TableCell>
+            <TableCell align="right" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>
+              Nubosidad
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {/* Iterar sobre rows y mostrar cada propiedad de Item */}
-          {rows.map((row, idx) => (
+          {climateData.map((dataPoint, idx) => (
             <TableRow
               key={idx}
-              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              sx={{
+                '&:last-child td, &:last-child th': { border: 0 },
+                '&:hover': { backgroundColor: '#39CCCC' },
+              }}
             >
-              <TableCell component="th" scope="row">
-                {row.dateStart}
+              <TableCell component="th" scope="row" sx={{ color: '#FFFF' }}>
+                {dataPoint.dateStart}
               </TableCell>
-              <TableCell>{row.dateEnd}</TableCell>
-              <TableCell align="right">{row.precipitation}</TableCell>
-              <TableCell align="right">{row.humidity}</TableCell>
-              <TableCell align="right">{row.clouds}</TableCell>
+              <TableCell sx={{ color: '#FFFF' }}>{dataPoint.dateEnd}</TableCell>
+              <TableCell align="right" sx={{ color: '#FFFF' }}>
+                {dataPoint.precipitation}
+              </TableCell>
+              <TableCell align="right" sx={{ color: '#FFFF' }}>
+                {dataPoint.humidity}
+              </TableCell>
+              <TableCell align="right" sx={{ color: '#FFFF' }}>
+                {dataPoint.clouds}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
